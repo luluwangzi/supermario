@@ -43,6 +43,9 @@ pip3 install -r requirements.txt
 python -m venv supermario && supermario\Scripts\activate.bat && git clone https://github.com/m0rniac/supermario temp_folder && move temp_folder\* . && rmdir /s /q temp_folder && deactivate
 ```
 ```bash
+cd supermario
+```
+```bash
 .\Scripts\activate
 ```
 ```bash
