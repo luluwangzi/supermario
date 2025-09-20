@@ -60,12 +60,17 @@ st.markdown("""
 def load_html_game():
     """Load the HTML5 Super Mario Bros game"""
     try:
-        with open('index.html', 'r', encoding='utf-8') as f:
+        with open('mario_game.html', 'r', encoding='utf-8') as f:
             html_content = f.read()
         return html_content
     except FileNotFoundError:
-        st.error("Game file not found. Please ensure index.html exists.")
-        return None
+        try:
+            with open('index.html', 'r', encoding='utf-8') as f:
+                html_content = f.read()
+            return html_content
+        except FileNotFoundError:
+            st.error("Game file not found. Please ensure mario_game.html or index.html exists.")
+            return None
 
 def main():
     """Main Streamlit app"""
@@ -134,7 +139,7 @@ def main():
             st.subheader("🎮 Play Super Mario Bros")
             
             # Display the game using components.iframe
-            components.html(html_content, height=500, scrolling=True)
+            components.html(html_content, height=650, scrolling=True)
             
             st.markdown("""
             <div class="feature-box">
