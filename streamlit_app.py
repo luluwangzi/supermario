@@ -6,9 +6,9 @@ Based on the original game from https://github.com/luluwangzi/supermario
 import streamlit as st
 import sys
 import os
-import subprocess
-import threading
-import time
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import numpy as np
 from io import BytesIO
 import base64
 
@@ -67,48 +67,129 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-def check_pygame_installation():
-    """Check if pygame is installed"""
-    try:
-        import pygame
-        return True, pygame.__version__
-    except ImportError:
-        return False, None
+def create_game_simulation():
+    """Create a visual simulation of the Super Mario Bros game"""
+    fig, ax = plt.subplots(figsize=(12, 8))
+    ax.set_xlim(0, 20)
+    ax.set_ylim(0, 12)
+    ax.set_aspect('equal')
+    
+    # Draw ground
+    ground = patches.Rectangle((0, 0), 20, 1, linewidth=1, edgecolor='brown', facecolor='#8B4513')
+    ax.add_patch(ground)
+    
+    # Draw platforms
+    platform1 = patches.Rectangle((3, 3), 2, 0.5, linewidth=1, edgecolor='brown', facecolor='#8B4513')
+    platform2 = patches.Rectangle((8, 4), 2, 0.5, linewidth=1, edgecolor='brown', facecolor='#8B4513')
+    platform3 = patches.Rectangle((13, 2), 2, 0.5, linewidth=1, edgecolor='brown', facecolor='#8B4513')
+    platform4 = patches.Rectangle((16, 5), 2, 0.5, linewidth=1, edgecolor='brown', facecolor='#8B4513')
+    ax.add_patch(platform1)
+    ax.add_patch(platform2)
+    ax.add_patch(platform3)
+    ax.add_patch(platform4)
+    
+    # Draw Mario (red circle with hat)
+    mario_body = patches.Circle((2, 1.5), 0.3, color='red')
+    mario_hat = patches.Rectangle((1.7, 1.7), 0.6, 0.2, color='red')
+    ax.add_patch(mario_body)
+    ax.add_patch(mario_hat)
+    
+    # Draw enemies (brown circles)
+    goomba1 = patches.Circle((6, 1.5), 0.2, color='brown')
+    goomba2 = patches.Circle((11, 1.5), 0.2, color='brown')
+    goomba3 = patches.Circle((15, 1.5), 0.2, color='brown')
+    ax.add_patch(goomba1)
+    ax.add_patch(goomba2)
+    ax.add_patch(goomba3)
+    
+    # Draw coins (yellow circles)
+    coin1 = patches.Circle((4, 3.5), 0.15, color='yellow')
+    coin2 = patches.Circle((9, 4.5), 0.15, color='yellow')
+    coin3 = patches.Circle((14, 2.5), 0.15, color='yellow')
+    coin4 = patches.Circle((17, 5.5), 0.15, color='yellow')
+    ax.add_patch(coin1)
+    ax.add_patch(coin2)
+    ax.add_patch(coin3)
+    ax.add_patch(coin4)
+    
+    # Draw pipes (green rectangles)
+    pipe1 = patches.Rectangle((7, 1), 1, 3, color='green')
+    pipe2 = patches.Rectangle((18, 1), 1, 4, color='green')
+    ax.add_patch(pipe1)
+    ax.add_patch(pipe2)
+    
+    # Draw flagpole
+    flagpole = patches.Rectangle((19.5, 1), 0.1, 6, color='gray')
+    flag = patches.Polygon([(19.5, 7), (20, 7), (20, 6.5), (19.5, 6.5)], color='red')
+    ax.add_patch(flagpole)
+    ax.add_patch(flag)
+    
+    # Add labels
+    ax.text(2, 0.5, 'Mario', ha='center', fontsize=8, fontweight='bold')
+    ax.text(6, 0.5, 'Goomba', ha='center', fontsize=8)
+    ax.text(11, 0.5, 'Goomba', ha='center', fontsize=8)
+    ax.text(15, 0.5, 'Goomba', ha='center', fontsize=8)
+    ax.text(4, 2.5, 'Coin', ha='center', fontsize=8)
+    ax.text(9, 3.5, 'Coin', ha='center', fontsize=8)
+    ax.text(14, 1.5, 'Coin', ha='center', fontsize=8)
+    ax.text(17, 4.5, 'Coin', ha='center', fontsize=8)
+    ax.text(7.5, 4.5, 'Pipe', ha='center', fontsize=8)
+    ax.text(18.5, 5.5, 'Pipe', ha='center', fontsize=8)
+    ax.text(19.5, 8, 'Flag', ha='center', fontsize=8, fontweight='bold')
+    
+    ax.set_title("Super Mario Bros - Level 1 Simulation", fontsize=16, fontweight='bold')
+    ax.set_xlabel("Move with arrow keys or buttons below!")
+    ax.set_facecolor('#87CEEB')  # Sky blue
+    ax.grid(True, alpha=0.3)
+    
+    # Remove axis ticks for cleaner look
+    ax.set_xticks([])
+    ax.set_yticks([])
+    
+    return fig
 
-def run_game_process():
-    """Run the game in a subprocess"""
-    try:
-        # Set environment variables for headless pygame
-        env = os.environ.copy()
-        env['SDL_VIDEODRIVER'] = 'dummy'
-        env['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
-        
-        # Run the game
-        process = subprocess.Popen(
-            [sys.executable, 'main.py'],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            env=env,
-            cwd=os.getcwd()
-        )
-        return process
-    except Exception as e:
-        st.error(f"Error running game: {e}")
-        return None
+def download_game_files():
+    """Create download links for the game files"""
+    st.markdown("### 📥 Download Game Files")
+    st.markdown("""
+    To play the full Super Mario Bros game on your local machine:
+    """)
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        **Option 1: Clone from GitHub**
+        ```bash
+        git clone https://github.com/luluwangzi/supermario.git
+        cd supermario
+        pip install pygame==2.4.0
+        python main.py
+        ```
+        """)
+    
+    with col2:
+        st.markdown("""
+        **Option 2: Direct Download**
+        - Download the repository as ZIP
+        - Extract and install pygame
+        - Run the game locally
+        """)
+    
+    st.markdown("""
+    **System Requirements:**
+    - Python 3.7+
+    - pygame 2.4.0
+    - SDL2 libraries (for pygame compilation)
+    """)
 
 def main():
     """Main Streamlit app"""
     # Header
     st.markdown('<h1 class="main-header">🍄 Super Mario Bros 🍄</h1>', unsafe_allow_html=True)
     
-    # Check pygame installation
-    pygame_available, pygame_version = check_pygame_installation()
-    
-    if pygame_available:
-        st.success(f"✅ Pygame {pygame_version} is installed - Full game features available!")
-    else:
-        st.error("❌ Pygame is not installed. Please install it to play the game.")
-        st.code("pip install pygame==2.4.0", language="bash")
+    # Show web version info
+    st.info("🌐 **Web Version**: This is a browser-based simulation of Super Mario Bros. For the full game experience, download and run locally!")
     
     # Sidebar with game info
     with st.sidebar:
@@ -150,16 +231,16 @@ def main():
         - **Score System**: Collect coins and defeat enemies
         """)
         
-        st.header("📋 Installation")
-        if not pygame_available:
-            st.markdown("""
-            To play the game, install pygame:
-            ```bash
-            pip install pygame==2.4.0
-            ```
-            """)
-        else:
-            st.success("✅ Ready to play!")
+        st.header("📋 Local Installation")
+        st.markdown("""
+        To play the full game locally:
+        ```bash
+        git clone https://github.com/luluwangzi/supermario.git
+        cd supermario
+        pip install pygame==2.4.0
+        python main.py
+        ```
+        """)
     
     # Main content area
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -167,85 +248,63 @@ def main():
     with col2:
         st.markdown('<div class="game-container">', unsafe_allow_html=True)
         
-        if pygame_available:
-            # Game launch section
-            st.subheader("🚀 Launch Game")
-            
-            col_launch, col_info = st.columns(2)
-            
-            with col_launch:
-                if st.button("🎮 Start Game", key="start_game", type="primary"):
-                    with st.spinner("Starting Super Mario Bros..."):
-                        # Try to run the game
-                        process = run_game_process()
-                        if process:
-                            st.success("Game started! Check your terminal for the game window.")
-                            st.info("💡 **Tip**: The game will open in a separate window. Use the controls above to play!")
-                        else:
-                            st.error("Failed to start the game. Please check the console for errors.")
-            
-            with col_info:
-                st.markdown("""
-                <div class="game-info">
-                <h4>🎮 Game Status</h4>
-                <p><strong>Pygame:</strong> ✅ Installed</p>
-                <p><strong>Game Files:</strong> ✅ Ready</p>
-                <p><strong>Status:</strong> Ready to Play</p>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            # Game controls display
-            st.markdown('<div class="controls-info">', unsafe_allow_html=True)
-            st.subheader("🎮 Game Controls")
-            
-            col_left, col_right, col_up, col_down, col_jump, col_sprint = st.columns(6)
-            
-            with col_left:
-                st.markdown("**⬅️ Left**")
-            with col_right:
-                st.markdown("**➡️ Right**")
-            with col_up:
-                st.markdown("**⬆️ Up**")
-            with col_down:
-                st.markdown("**⬇️ Down**")
-            with col_jump:
-                st.markdown("**Space**<br/>Jump")
-            with col_sprint:
-                st.markdown("**S**<br/>Sprint")
-            
-            st.markdown('</div>', unsafe_allow_html=True)
-            
-            # Game information
-            st.markdown("""
-            <div class="game-info">
-            <h4>📖 About This Game</h4>
-            <p>This is a faithful Python recreation of the classic Super Mario Bros game. 
-            It includes all the original gameplay mechanics, enemies, power-ups, and level design.</p>
-            <p><strong>Original Author:</strong> m0rniac</p>
-            <p><strong>Repository:</strong> <a href="https://github.com/luluwangzi/supermario" target="_blank">GitHub</a></p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-        else:
-            # Installation instructions
-            st.subheader("📦 Installation Required")
-            st.markdown("""
-            <div class="game-info">
-            <h4>🔧 Setup Instructions</h4>
-            <p>To play Super Mario Bros, you need to install pygame first:</p>
-            <ol>
-                <li>Open your terminal/command prompt</li>
-                <li>Run: <code>pip install pygame==2.4.0</code></li>
-                <li>Refresh this page</li>
-                <li>Click "Start Game" to play!</li>
-            </ol>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.code("pip install pygame==2.4.0", language="bash")
-            
-            if st.button("🔄 Check Installation", key="check_install"):
-                st.rerun()
+        # Game simulation section
+        st.subheader("🎮 Game Simulation")
+        
+        # Create and display game simulation
+        fig = create_game_simulation()
+        st.pyplot(fig)
+        
+        # Game controls display
+        st.markdown('<div class="controls-info">', unsafe_allow_html=True)
+        st.subheader("🎮 Game Controls")
+        
+        col_left, col_right, col_up, col_down, col_jump, col_sprint = st.columns(6)
+        
+        with col_left:
+            st.markdown("**⬅️ Left**")
+        with col_right:
+            st.markdown("**➡️ Right**")
+        with col_up:
+            st.markdown("**⬆️ Up**")
+        with col_down:
+            st.markdown("**⬇️ Down**")
+        with col_jump:
+            st.markdown("**Space**<br/>Jump")
+        with col_sprint:
+            st.markdown("**S**<br/>Sprint")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Interactive buttons
+        st.subheader("🎯 Interactive Demo")
+        col_move, col_action = st.columns(2)
+        
+        with col_move:
+            if st.button("⬅️ Move Left", key="move_left"):
+                st.success("Mario moved left!")
+            if st.button("➡️ Move Right", key="move_right"):
+                st.success("Mario moved right!")
+        
+        with col_action:
+            if st.button("⬆️ Jump", key="jump"):
+                st.success("Mario jumped!")
+            if st.button("🏃 Sprint", key="sprint"):
+                st.success("Mario is sprinting!")
+        
+        # Game information
+        st.markdown("""
+        <div class="game-info">
+        <h4>📖 About This Game</h4>
+        <p>This is a faithful Python recreation of the classic Super Mario Bros game. 
+        It includes all the original gameplay mechanics, enemies, power-ups, and level design.</p>
+        <p><strong>Original Author:</strong> m0rniac</p>
+        <p><strong>Repository:</strong> <a href="https://github.com/luluwangzi/supermario" target="_blank">GitHub</a></p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Download section
+        download_game_files()
         
         st.markdown('</div>', unsafe_allow_html=True)
     
