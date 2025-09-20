@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Mario Bros - Play Online</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 70%, #228B22 70%, #228B22 100%);
+            border: 3px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        
+        .game-header {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            z-index: 100;
+        }
+        
+        .mario {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #FF0000;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            left: 50px;
+            bottom: 50px;
+            transition: all 0.1s ease;
+            z-index: 50;
+        }
+        
+        .mario::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 5px;
+            width: 20px;
+            height: 8px;
+            background: #FF0000;
+            border-radius: 50%;
+        }
+        
+        .mario::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 8px;
+            width: 14px;
+            height: 6px;
+            background: #8B4513;
+            border-radius: 50%;
+        }
+        
+        .platform {
+            position: absolute;
+            background: #8B4513;
+            border: 2px solid #654321;
+        }
+        
+        .platform-1 {
+            width: 100px;
+            height: 20px;
+            left: 200px;
+            bottom: 100px;
+        }
+        
+        .platform-2 {
+            width: 80px;
+            height: 20px;
+            left: 400px;
+            bottom: 150px;
+        }
+        
+        .platform-3 {
+            width: 120px;
+            height: 20px;
+            left: 600px;
+            bottom: 80px;
+        }
+        
+        .enemy {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background: #8B4513;
+            border-radius: 50%;
+            bottom: 50px;
+            animation: moveEnemy 3s linear infinite;
+        }
+        
+        .enemy::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: 5px;
+            width: 15px;
+            height: 8px;
+            background: #8B4513;
+            border-radius: 50%;
+        }
+        
+        .enemy-1 {
+            left: 300px;
+            animation-delay: 0s;
+        }
+        
+        .enemy-2 {
+            left: 500px;
+            animation-delay: 1s;
+        }
+        
+        .enemy-3 {
+            left: 700px;
+            animation-delay: 2s;
+        }
+        
+        @keyframes moveEnemy {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(-50px); }
+            100% { transform: translateX(0); }
+        }
+        
+        .coin {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #FFD700;
+            border-radius: 50%;
+            border: 2px solid #FFA500;
+            animation: spin 2s linear infinite;
+        }
+        
+        .coin-1 {
+            left: 220px;
+            bottom: 120px;
+        }
+        
+        .coin-2 {
+            left: 420px;
+            bottom: 170px;
+        }
+        
+        .coin-3 {
+            left: 620px;
+            bottom: 100px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(360deg); }
+        }
+        
+        .pipe {
+            position: absolute;
+            background: #228B22;
+            border: 2px solid #006400;
+        }
+        
+        .pipe-1 {
+            width: 60px;
+            height: 80px;
+            left: 350px;
+            bottom: 50px;
+        }
+        
+        .pipe-2 {
+            width: 60px;
+            height: 120px;
+            left: 550px;
+            bottom: 50px;
+        }
+        
+        .controls {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .jump-animation {
+            animation: jump 0.6s ease-in-out;
+        }
+        
+        @keyframes jump {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-60px); }
+            100% { transform: translateY(0); }
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            z-index: 200;
+        }
+        
+        .restart-btn {
+            background: #FF0000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        
+        .restart-btn:hover {
+            background: #CC0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <div>Score: <span id="score">0</span></div>
+            <div>Lives: <span id="lives">3</span></div>
+            <div>Level: <span id="level">1</span></div>
+        </div>
+        
+        <div class="mario" id="mario"></div>
+        
+        <div class="platform platform-1"></div>
+        <div class="platform platform-2"></div>
+        <div class="platform platform-3"></div>
+        
+        <div class="enemy enemy-1" id="enemy1"></div>
+        <div class="enemy enemy-2" id="enemy2"></div>
+        <div class="enemy enemy-3" id="enemy3"></div>
+        
+        <div class="coin coin-1" id="coin1"></div>
+        <div class="coin coin-2" id="coin2"></div>
+        <div class="coin coin-3" id="coin3"></div>
+        
+        <div class="pipe pipe-1"></div>
+        <div class="pipe pipe-2"></div>
+        
+        <div class="controls">
+            Use Arrow Keys to move, Space to jump, or click the buttons below
+        </div>
+        
+        <div class="game-over" id="gameOver">
+            <h2>Game Over!</h2>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <button class="restart-btn" onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+    
+    <div style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px;">
+        <button onclick="moveLeft()" style="padding: 10px 15px; font-size: 16px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">⬅️ Left</button>
+        <button onclick="moveRight()" style="padding: 10px 15px; font-size: 16px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">➡️ Right</button>
+        <button onclick="jump()" style="padding: 10px 15px; font-size: 16px; background: #FF9800; color: white; border: none; border-radius: 5px; cursor: pointer;">⬆️ Jump</button>
+    </div>
+
+    <script>
+        let mario = document.getElementById('mario');
+        let score = 0;
+        let lives = 3;
+        let level = 1;
+        let marioPosition = 50;
+        let isJumping = false;
+        let gameRunning = true;
+        
+        // Game state
+        let enemies = [
+            { element: document.getElementById('enemy1'), position: 300, direction: -1 },
+            { element: document.getElementById('enemy2'), position: 500, direction: -1 },
+            { element: document.getElementById('enemy3'), position: 700, direction: -1 }
+        ];
+        
+        let coins = [
+            { element: document.getElementById('coin1'), collected: false },
+            { element: document.getElementById('coin2'), collected: false },
+            { element: document.getElementById('coin3'), collected: false }
+        ];
+        
+        // Keyboard controls
+        document.addEventListener('keydown', function(event) {
+            if (!gameRunning) return;
+            
+            switch(event.code) {
+                case 'ArrowLeft':
+                    moveLeft();
+                    break;
+                case 'ArrowRight':
+                    moveRight();
+                    break;
+                case 'Space':
+                    event.preventDefault();
+                    jump();
+                    break;
+            }
+        });
+        
+        function moveLeft() {
+            if (!gameRunning) return;
+            marioPosition = Math.max(0, marioPosition - 20);
+            mario.style.left = marioPosition + 'px';
+        }
+        
+        function moveRight() {
+            if (!gameRunning) return;
+            marioPosition = Math.min(770, marioPosition + 20);
+            mario.style.left = marioPosition + 'px';
+        }
+        
+        function jump() {
+            if (!gameRunning || isJumping) return;
+            isJumping = true;
+            mario.classList.add('jump-animation');
+            setTimeout(() => {
+                mario.classList.remove('jump-animation');
+                isJumping = false;
+            }, 600);
+        }
+        
+        function updateScore(points) {
+            score += points;
+            document.getElementById('score').textContent = score;
+        }
+        
+        function loseLife() {
+            lives--;
+            document.getElementById('lives').textContent = lives;
+            if (lives <= 0) {
+                gameOver();
+            }
+        }
+        
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+        
+        function restartGame() {
+            score = 0;
+            lives = 3;
+            level = 1;
+            marioPosition = 50;
+            gameRunning = true;
+            
+            document.getElementById('score').textContent = score;
+            document.getElementById('lives').textContent = lives;
+            document.getElementById('level').textContent = level;
+            document.getElementById('gameOver').style.display = 'none';
+            
+            mario.style.left = marioPosition + 'px';
+            
+            // Reset coins
+            coins.forEach(coin => {
+                coin.collected = false;
+                coin.element.style.display = 'block';
+            });
+        }
+        
+        // Game loop
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            // Move enemies
+            enemies.forEach(enemy => {
+                enemy.position += enemy.direction * 2;
+                if (enemy.position <= 0 || enemy.position >= 775) {
+                    enemy.direction *= -1;
+                }
+                enemy.element.style.left = enemy.position + 'px';
+                
+                // Check collision with Mario
+                if (Math.abs(marioPosition - enemy.position) < 30 && !isJumping) {
+                    loseLife();
+                    enemy.position = 300 + Math.random() * 400;
+                }
+            });
+            
+            // Check coin collection
+            coins.forEach(coin => {
+                if (!coin.collected) {
+                    const coinRect = coin.element.getBoundingClientRect();
+                    const marioRect = mario.getBoundingClientRect();
+                    
+                    if (Math.abs(marioRect.left - coinRect.left) < 30 && 
+                        Math.abs(marioRect.top - coinRect.top) < 30) {
+                        coin.collected = true;
+                        coin.element.style.display = 'none';
+                        updateScore(100);
+                    }
+                }
+            });
+            
+            // Check level completion
+            if (coins.every(coin => coin.collected)) {
+                level++;
+                document.getElementById('level').textContent = level;
+                updateScore(500);
+                
+                // Reset coins for next level
+                coins.forEach(coin => {
+                    coin.collected = false;
+                    coin.element.style.display = 'block';
+                });
+            }
+        }
+        
+        // Start game loop
+        setInterval(gameLoop, 50);
+        
+        // Initialize game
+        restartGame();
+    </script>
+</body>
+</html>
